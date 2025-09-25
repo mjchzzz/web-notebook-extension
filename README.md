@@ -2,7 +2,7 @@
 
 一个简单实用的Chrome扩展，帮助您在浏览网页时随时记录笔记，并可选取网页内容添加到笔记中。
 
-![网页笔记本截图](screenshots/screenshot.png)
+<img src="screenshots/screenshot.png" alt="网页笔记本截图" width="25%" />
 
 ## 功能特点
 
