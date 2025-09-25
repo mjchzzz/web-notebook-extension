@@ -6,12 +6,17 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Set up environment
       run: |
@@ -20,24 +25,24 @@ jobs:
     - name: Build extension
       run: |
         ./package_extension.sh
+        ls -la
 
     - name: Upload extension artifact
       uses: actions/upload-artifact@v4
       with:
         name: web-notebook-extension
         path: web-notebook-extension.zip
+        retention-days: 5
 
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      id: create_release
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1
       with:
-        files: web-notebook-extension.zip
-        name: 最新构建
-        tag_name: latest
-        body: 自动构建的最新版本
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: "web-notebook-extension.zip"
+        tag: "latest"
+        name: "最新构建"
+        body: "自动构建的最新版本"
+        allowUpdates: true
+        removeArtifacts: false
+        token: ${{ secrets.GITHUB_TOKEN }}
 
