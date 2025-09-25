@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>网页笔记本</title>
+  <script src="qrcode.min.js"></script>
+  <style>
+    body {
+      width: 380px;
+      min-height: 300px;
+      max-height: 500px;
+      padding: 12px;
+      font-family: Arial, sans-serif;
+      overflow-y: auto;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 12px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 12px;
+    }
+    h1 {
+      color: #4285f4;
+      font-size: 20px;
+      margin: 0;
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
+      background-color: #f1f3f4;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #5f6368;
+      font-size: 16px;
+      transition: background-color 0.2s;
+    }
+    .action-btn:hover {
+      background-color: #e8eaed;
+    }
+    .action-btn.save {
+      color: #4285f4;
+    }
+    .action-btn.clear {
+      color: #db4437;
+    }
+    #notes-container {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 8px;
+      max-height: 280px;
+      background-color: #fafafa;
+    }
+    .note {
+      background-color: #fff;
+      border-left: 3px solid #4285f4;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+    .note:hover {
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .note-content {
+      word-wrap: break-word;
+      cursor: pointer;
+      padding-bottom: 5px;
+    }
+    .note-content:hover {
+      background-color: #f5f8ff;
+    }
+    .note-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 5px;
+    }
+    .delete-btn, .edit-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 8px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      transition: background-color 0.2s;
+    }
+    .delete-btn:hover, .edit-btn:hover {
+      background-color: #f0f0f0;
+    }
+    .delete-btn {
+      color: #db4437;
+    }
+    .edit-btn {
+      color: #4285f4;
+    }
+    .note-meta {
+      font-size: 9px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 3px;
+      padding-top: 3px;
+      border-top: 1px dotted #eee;
+    }
+    .note-meta-source {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+    .note-meta-time {
+      text-align: right;
+      white-space: nowrap;
+    }
+    .input-area {
+      display: flex;
+      flex-direction: column;
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    #note-input {
+      width: 100%;
+      height: 70px;
+      padding: 10px;
+      margin-bottom: 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: none;
+      font-family: inherit;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    #note-input:focus {
+      outline: none;
+      border-color: #4285f4;
+      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+    }
+    .editing-note {
+      border-left-color: #f5b400;
+      background-color: #fffbf0;
+    }
+    a {
+      color: #4285f4;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .floating-btn {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.2s;
+    }
+    .floating-btn:hover {
+      background-color: #3367d6;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #5f6368;
+    }
+    .empty-state p {
+      margin-bottom: 15px;
+    }
+    /* 二维码相关样式 */
+    #qrcode-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .qrcode-container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      max-width: 90%;
+    }
+    .qrcode-container h3 {
+      margin-top: 0;
+      color: #4285f4;
+    }
+    #qrcode {
+      margin: 15px auto;
+    }
+    .qrcode-url {
+      font-size: 12px;
+      color: #666;
+      word-break: break-all;
+      margin-bottom: 15px;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .qrcode-close {
+      background-color: #f1f3f4;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      color: #5f6368;
+      font-weight: bold;
+    }
+    .qrcode-close:hover {
+      background-color: #e8eaed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>网页笔记本</h1>
+      <div class="header-actions">
+        <button id="grab-selection" class="action-btn" title="获取选中内容">📋</button>
+        <button id="generate-qrcode" class="action-btn" title="生成当前页面二维码">📱</button>
+        <button id="save-note" class="action-btn save" title="保存笔记">💾</button>
+        <button id="clear-all" class="action-btn clear" title="清空所有">🗑️</button>
+      </div>
+    </div>
+
+    <div id="notes-container"></div>
+
+    <div class="input-area">
+      <textarea id="note-input" placeholder="在此输入笔记..."></textarea>
+    </div>
+  </div>
+
+  <!-- 二维码模态框 -->
+  <div id="qrcode-modal">
+    <div class="qrcode-container">
+      <h3>页面二维码</h3>
+      <div class="qrcode-url" id="qrcode-url"></div>
+      <div id="qrcode"></div>
+      <button class="qrcode-close" id="qrcode-close">关闭</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+

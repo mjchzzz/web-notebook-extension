@@ -1,0 +1,43 @@
+name: Build Extension
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up environment
+      run: |
+        chmod +x package_extension.sh
+
+    - name: Build extension
+      run: |
+        ./package_extension.sh
+
+    - name: Upload extension artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: web-notebook-extension
+        path: web-notebook-extension.zip
+
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: web-notebook-extension.zip
+        name: 最新构建
+        tag_name: latest
+        body: 自动构建的最新版本
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
